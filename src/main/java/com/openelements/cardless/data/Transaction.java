@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 public interface Transaction {
 
-    TransactionAmount transactionAmount();
+    Amount transactionAmount();
 
     LocalDate valueDate();
 

@@ -5,6 +5,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.openelements.cardless.data.AccessAndRefreshToken;
 import com.openelements.cardless.data.AccessToken;
+import com.openelements.cardless.data.Account;
+import com.openelements.cardless.data.Balance;
 import com.openelements.cardless.data.ErrorMessage;
 import com.openelements.cardless.data.Institution;
 import com.openelements.cardless.data.JsonBasedFactory;
@@ -185,5 +187,17 @@ public class CardlessClient {
         final JsonElement jsonElement = handleGetRequest(
                 "https://bankaccountdata.gocardless.com/api/v2/accounts/" + account + "/transactions/");
         return JsonBasedFactory.createTransactions(jsonElement);
+    }
+
+    public Account getAccount(String id) throws IOException, InterruptedException {
+        final JsonElement jsonElement = handleGetRequest(
+                "https://bankaccountdata.gocardless.com/api/v2/accounts/" + id + "/");
+        return JsonBasedFactory.createAccount(jsonElement);
+    }
+
+    public List<Balance> getBalances(String accountId) throws IOException, InterruptedException {
+        final JsonElement jsonElement = handleGetRequest(
+                "https://bankaccountdata.gocardless.com/api/v2/accounts/" + accountId + "/balances/");
+        return JsonBasedFactory.createBalances(jsonElement);
     }
 }

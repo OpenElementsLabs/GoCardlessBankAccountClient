@@ -68,4 +68,27 @@ public class CardlessClientTests {
                         t.bookingDate() + ": " + t.remittanceInformationUnstructured() + " -> " + t.transactionAmount()
                                 .amount() + " " + t.transactionAmount().currency()));
     }
+
+    @Test
+    void test3() throws Exception {
+        //given
+        Dotenv dotenv = Dotenv.load();
+        String secretId = dotenv.get("CARDLESS_SECRET_ID");
+        String secretKey = dotenv.get("CARDLESS_SECRET_KEY");
+        CardlessClient client = new CardlessClient(secretId, secretKey);
+
+        //when
+        RequisitionsPage page = client.getRequisitions(10, 0);
+        page.requisitions().stream()
+                .flatMap(r -> r.accounts().stream())
+                .flatMap(a -> {
+                    try {
+                        return client.getBalances(a).stream();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .forEach(b -> System.out.println(
+                        b.balanceType() + ": " + b.balanceAmount() + " " + b.referenceDate()));
+    }
 }

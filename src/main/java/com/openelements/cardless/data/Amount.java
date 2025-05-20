@@ -2,5 +2,5 @@ package com.openelements.cardless.data;
 
 import java.math.BigDecimal;
 
-public record TransactionAmount(String currency, BigDecimal amount) {
+public record Amount(String currency, BigDecimal amount) {
 }

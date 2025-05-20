@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -113,7 +114,7 @@ public class JsonBasedFactory {
         } else {
             debtorAccount = null;
         }
-        final TransactionAmount transactionAmount = createTransactionAmount(jsonObject.get("transactionAmount"));
+        final Amount transactionAmount = createAmount(jsonObject.get("transactionAmount"));
         final LocalDate bookingDate = LocalDate.parse(jsonObject.get("bookingDate").getAsString());
         final LocalDate valueDate = LocalDate.parse(jsonObject.get("valueDate").getAsString());
         final String remittanceInformationUnstructured = jsonObject.get("remittanceInformationUnstructured")
@@ -125,7 +126,7 @@ public class JsonBasedFactory {
     private static PendingTransaction createPendingTransaction(@NonNull final JsonElement json) {
         Objects.requireNonNull(json, "json must not be null");
         final JsonObject jsonObject = json.getAsJsonObject();
-        final TransactionAmount transactionAmount = createTransactionAmount(jsonObject.get("transactionAmount"));
+        final Amount transactionAmount = createAmount(jsonObject.get("transactionAmount"));
         final LocalDate valueDate = LocalDate.parse(jsonObject.get("valueDate").getAsString());
         final String remittanceInformationUnstructured = jsonObject.get("remittanceInformationUnstructured")
                 .getAsString();
@@ -137,12 +138,12 @@ public class JsonBasedFactory {
         return new DebtorAccount();
     }
 
-    private static TransactionAmount createTransactionAmount(@NonNull final JsonElement json) {
+    private static Amount createAmount(@NonNull final JsonElement json) {
         Objects.requireNonNull(json, "json must not be null");
         final JsonObject jsonObject = json.getAsJsonObject();
         final String currency = jsonObject.get("currency").getAsString();
         final BigDecimal amount = new BigDecimal(jsonObject.get("amount").getAsString());
-        return new TransactionAmount(currency, amount);
+        return new Amount(currency, amount);
     }
 
     public static Transactions createTransactions(@NonNull final JsonElement jsonElement) {
@@ -158,5 +159,37 @@ public class JsonBasedFactory {
                 .map(json -> createPendingTransaction(json))
                 .toList();
         return new Transactions(bookedList, pendingList);
+    }
+
+    public static Account createAccount(JsonElement jsonElement) {
+        Objects.requireNonNull(jsonElement, "jsonElement must not be null");
+        final JsonObject jsonObject = jsonElement.getAsJsonObject();
+        final String id = jsonObject.get("id").getAsString();
+        final ZonedDateTime created = ZonedDateTime.parse(jsonObject.get("created").getAsString());
+        final ZonedDateTime lastAccessed = ZonedDateTime.parse(jsonObject.get("last_accessed").getAsString());
+        final String iban = jsonObject.get("iban").getAsString();
+        final String bban = jsonObject.get("bban").getAsString();
+        final String status = jsonObject.get("status").getAsString();
+        final String institutionId = jsonObject.get("institution_id").getAsString();
+        final String ownerName = jsonObject.get("owner_name").getAsString();
+        final String name = jsonObject.get("name").getAsString();
+        return new Account(id, created, lastAccessed, iban, bban, status, institutionId, ownerName, name);
+    }
+
+    public static List<Balance> createBalances(JsonElement jsonElement) {
+        Objects.requireNonNull(jsonElement, "jsonElement must not be null");
+        final JsonObject jsonObject = jsonElement.getAsJsonObject();
+        return jsonObject.getAsJsonArray("balances").asList().stream()
+                .map(json -> createBalance(json))
+                .toList();
+    }
+
+    private static Balance createBalance(JsonElement jsonElement) {
+        Objects.requireNonNull(jsonElement, "jsonElement must not be null");
+        final JsonObject jsonObject = jsonElement.getAsJsonObject();
+        final Amount balanceAmount = createAmount(jsonObject.getAsJsonObject("balanceAmount"));
+        final String balanceType = jsonObject.get("balanceType").getAsString();
+        final LocalDate referenceDate = LocalDate.parse(jsonObject.get("referenceDate").getAsString());
+        return new Balance(balanceAmount, balanceType, referenceDate);
     }
 }
