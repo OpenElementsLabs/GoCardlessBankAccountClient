@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 public class JsonBasedFactory {
 
@@ -21,6 +22,7 @@ public class JsonBasedFactory {
         return new AccessToken(access, access_expires);
     }
 
+    @NonNull
     public static AccessAndRefreshToken createAccessAndRefreshToken(@NonNull final JsonElement json) {
         Objects.requireNonNull(json, "json must not be null");
         final JsonObject jsonObject = json.getAsJsonObject();
@@ -31,6 +33,7 @@ public class JsonBasedFactory {
         return new AccessAndRefreshToken(access, accessExpires, refresh, refreshExpires);
     }
 
+    @NonNull
     public static Institution createInstitution(@NonNull final JsonElement json) {
         Objects.requireNonNull(json, "json must not be null");
         final JsonObject jsonObject = json.getAsJsonObject();
@@ -40,6 +43,7 @@ public class JsonBasedFactory {
         return new Institution(id, name, bic);
     }
 
+    @NonNull
     public static Requisition createRequisition(@NonNull final JsonElement json) {
         Objects.requireNonNull(json, "json must not be null");
         final JsonObject jsonObject = json.getAsJsonObject();
@@ -58,6 +62,7 @@ public class JsonBasedFactory {
         return new Requisition(id, created, redirect, status, institution_id, agreement, reference, accounts, link);
     }
 
+    @NonNull
     public static RequisitionsPage createRequisitionsPage(@NonNull final JsonElement json) {
         Objects.requireNonNull(json, "json must not be null");
         final JsonObject jsonObject = json.getAsJsonObject();
@@ -71,6 +76,7 @@ public class JsonBasedFactory {
         return new RequisitionsPage(count, next, previous, requisitions);
     }
 
+    @NonNull
     public static JsonObject createRequisitionRequestBody(@NonNull final String institutionId) {
         Objects.requireNonNull(institutionId, "institutionId must not be null");
         final JsonObject body = new JsonObject();
@@ -79,6 +85,7 @@ public class JsonBasedFactory {
         return body;
     }
 
+    @NonNull
     public static JsonObject createUpdateAccessTokenBody(@NonNull final String refreshToken) {
         Objects.requireNonNull(refreshToken, "refreshToken must not be null");
         final JsonObject body = new JsonObject();
@@ -86,6 +93,7 @@ public class JsonBasedFactory {
         return body;
     }
 
+    @NonNull
     public static JsonObject createReceiveAccessToken(@NonNull final String secretId, @NonNull final String secretKey) {
         Objects.requireNonNull(secretId, "secretId must not be null");
         Objects.requireNonNull(secretKey, "secretKey must not be null");
@@ -95,6 +103,7 @@ public class JsonBasedFactory {
         return body;
     }
 
+    @Nullable
     private static String getAsStringOrNull(@NonNull final JsonElement element) {
         if (element == null || element.isJsonNull()) {
             return null;
@@ -103,6 +112,7 @@ public class JsonBasedFactory {
         }
     }
 
+    @NonNull
     private static BookedTransaction createBookedTransaction(@NonNull final JsonElement json) {
         Objects.requireNonNull(json, "json must not be null");
         final JsonObject jsonObject = json.getAsJsonObject();
@@ -123,6 +133,7 @@ public class JsonBasedFactory {
                 valueDate, remittanceInformationUnstructured);
     }
 
+    @NonNull
     private static PendingTransaction createPendingTransaction(@NonNull final JsonElement json) {
         Objects.requireNonNull(json, "json must not be null");
         final JsonObject jsonObject = json.getAsJsonObject();
@@ -133,11 +144,13 @@ public class JsonBasedFactory {
         return new PendingTransaction(transactionAmount, valueDate, remittanceInformationUnstructured);
     }
 
+    @NonNull
     private static DebtorAccount createDebtorAccount(@NonNull final JsonElement json) {
         Objects.requireNonNull(json, "json must not be null");
         return new DebtorAccount();
     }
 
+    @NonNull
     private static Amount createAmount(@NonNull final JsonElement json) {
         Objects.requireNonNull(json, "json must not be null");
         final JsonObject jsonObject = json.getAsJsonObject();
@@ -146,6 +159,7 @@ public class JsonBasedFactory {
         return new Amount(currency, amount);
     }
 
+    @NonNull
     public static Transactions createTransactions(@NonNull final JsonElement jsonElement) {
         Objects.requireNonNull(jsonElement, "jsonElement must not be null");
         final JsonObject jsonObject = jsonElement.getAsJsonObject();
@@ -161,7 +175,8 @@ public class JsonBasedFactory {
         return new Transactions(bookedList, pendingList);
     }
 
-    public static Account createAccount(JsonElement jsonElement) {
+    @NonNull
+    public static Account createAccount(@NonNull final JsonElement jsonElement) {
         Objects.requireNonNull(jsonElement, "jsonElement must not be null");
         final JsonObject jsonObject = jsonElement.getAsJsonObject();
         final String id = jsonObject.get("id").getAsString();
@@ -176,7 +191,8 @@ public class JsonBasedFactory {
         return new Account(id, created, lastAccessed, iban, bban, status, institutionId, ownerName, name);
     }
 
-    public static List<Balance> createBalances(JsonElement jsonElement) {
+    @NonNull
+    public static List<Balance> createBalances(@NonNull final JsonElement jsonElement) {
         Objects.requireNonNull(jsonElement, "jsonElement must not be null");
         final JsonObject jsonObject = jsonElement.getAsJsonObject();
         return jsonObject.getAsJsonArray("balances").asList().stream()
@@ -184,7 +200,8 @@ public class JsonBasedFactory {
                 .toList();
     }
 
-    private static Balance createBalance(JsonElement jsonElement) {
+    @NonNull
+    private static Balance createBalance(@NonNull final JsonElement jsonElement) {
         Objects.requireNonNull(jsonElement, "jsonElement must not be null");
         final JsonObject jsonObject = jsonElement.getAsJsonObject();
         final Amount balanceAmount = createAmount(jsonObject.getAsJsonObject("balanceAmount"));

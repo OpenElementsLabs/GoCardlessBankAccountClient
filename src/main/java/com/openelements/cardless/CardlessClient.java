@@ -32,21 +32,18 @@ public class CardlessClient {
 
     public CardlessClient(@NonNull final String secretId, @NonNull final String secretKey)
             throws IOException, InterruptedException {
+        Objects.requireNonNull(secretId, "secretId must not be null");
+        Objects.requireNonNull(secretKey, "secretKey must not be null");
         httpClient = HttpClient.newBuilder().build();
         final JsonObject body = JsonBasedFactory.createReceiveAccessToken(secretId, secretKey);
         final JsonElement response = handlePostRequest("https://bankaccountdata.gocardless.com/api/v2/token/new/",
                 body);
-        AccessAndRefreshToken token = JsonBasedFactory.createAccessAndRefreshToken(response);
+        final AccessAndRefreshToken token = JsonBasedFactory.createAccessAndRefreshToken(response);
         accessAndRefreshTokenRef.set(token);
     }
 
-    public CardlessClient(@NonNull final String sandboxToken) {
-        httpClient = HttpClient.newBuilder().build();
-        AccessAndRefreshToken token = new AccessAndRefreshToken(sandboxToken, Integer.MAX_VALUE, "", 0);
-        accessAndRefreshTokenRef.set(token);
-    }
-
-    private static ErrorMessage createFromJson(@NonNull String json) {
+    @NonNull
+    private static ErrorMessage createFromJson(@NonNull final String json) {
         Objects.requireNonNull(json, "json must not be null");
         final JsonElement jsonElement = JsonParser.parseString(json);
         if (jsonElement.isJsonObject()) {
@@ -59,28 +56,31 @@ public class CardlessClient {
         throw new IllegalArgumentException("Invalid JSON format: " + json);
     }
 
-    private HttpRequest createGetRequest(String url) throws IOException, InterruptedException {
+    @NonNull
+    private HttpRequest createGetRequest(@NonNull final String url) throws IOException, InterruptedException {
         return createGetRequest(url, true);
     }
 
-    private HttpRequest createGetRequest(String url, boolean checkAccessToken)
+    @NonNull
+    private HttpRequest createGetRequest(@NonNull final String url, final boolean checkAccessToken)
             throws IOException, InterruptedException {
         Objects.requireNonNull(url, "url must not be null");
         if (checkAccessToken) {
             checkAccessToken();
         }
         final AccessAndRefreshToken accessAndRefreshToken = accessAndRefreshTokenRef.get();
-        HttpRequest.Builder builder = HttpRequest.newBuilder()
+        final HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("Content-Type", "application/json")
                 .header("accept", "application/json");
         if (accessAndRefreshToken != null) {
-            builder = builder.header("Authorization", "Bearer " + accessAndRefreshTokenRef.get().access());
+            builder.header("Authorization", "Bearer " + accessAndRefreshTokenRef.get().access());
         }
         return builder.GET()
                 .build();
     }
 
+    @NonNull
     private HttpRequest createPostRequest(@NonNull final String url, @NonNull JsonElement body,
             boolean checkAccessToken) throws IOException, InterruptedException {
         Objects.requireNonNull(url, "url must not be null");
@@ -89,18 +89,19 @@ public class CardlessClient {
             checkAccessToken();
         }
         final AccessAndRefreshToken accessAndRefreshToken = accessAndRefreshTokenRef.get();
-        HttpRequest.Builder builder = HttpRequest.newBuilder()
+        final HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("Content-Type", "application/json")
                 .header("accept", "application/json");
         if (accessAndRefreshToken != null) {
-            builder = builder.header("Authorization", "Bearer " + accessAndRefreshTokenRef.get().access());
+            builder.header("Authorization", "Bearer " + accessAndRefreshTokenRef.get().access());
         }
         return builder.POST(HttpRequest.BodyPublishers.ofString(body.toString()))
                 .build();
     }
 
-    private JsonElement handleGetRequest(String url) throws IOException, InterruptedException {
+    @NonNull
+    private JsonElement handleGetRequest(@NonNull final String url) throws IOException, InterruptedException {
         final HttpRequest request = createGetRequest(url);
         final HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
         if (response.statusCode() != 200) {
@@ -119,7 +120,9 @@ public class CardlessClient {
         }
     }
 
-    private JsonElement handlePostRequest(String url, JsonElement body) throws IOException, InterruptedException {
+    @NonNull
+    private JsonElement handlePostRequest(@NonNull final String url, @NonNull final JsonElement body)
+            throws IOException, InterruptedException {
         final HttpRequest request = createPostRequest(url, body, false);
         final HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
         if (response.statusCode() != 200 && response.statusCode() != 201) {
@@ -138,6 +141,7 @@ public class CardlessClient {
         }
     }
 
+    @NonNull
     private AccessToken updateAccessToken() throws IOException, InterruptedException {
         final JsonObject body = JsonBasedFactory.createUpdateAccessTokenBody(accessAndRefreshTokenRef.get().refresh());
         final JsonElement jsonElement = handlePostRequest(
@@ -156,15 +160,17 @@ public class CardlessClient {
         }
     }
 
-    public RequisitionsPage getRequisitions(int limit, int offset) throws IOException, InterruptedException {
-        checkAccessToken();
+    @NonNull
+    public RequisitionsPage getRequisitions(final int limit, final int offset)
+            throws IOException, InterruptedException {
         final JsonElement jsonElement = handleGetRequest(
                 "https://bankaccountdata.gocardless.com/api/v2/requisitions/?limit=" + limit + "&offset=" + offset);
         return JsonBasedFactory.createRequisitionsPage(jsonElement);
     }
 
-    public List<Institution> getInstitutions(String country) throws IOException, InterruptedException {
-        checkAccessToken();
+    @NonNull
+    public List<Institution> getInstitutions(@NonNull final String country) throws IOException, InterruptedException {
+        Objects.requireNonNull(country, "country must not be null");
         final JsonElement jsonElement = handleGetRequest(
                 "https://bankaccountdata.gocardless.com/api/v2/institutions/?country=" + country);
         return jsonElement.getAsJsonArray().asList().stream()
@@ -172,30 +178,39 @@ public class CardlessClient {
                 .toList();
     }
 
-    public Requisition createRequisition(Institution institution) throws IOException, InterruptedException {
+    @NonNull
+    public Requisition createRequisition(@NonNull final Institution institution)
+            throws IOException, InterruptedException {
         return createRequisition(institution.id());
     }
 
-    public Requisition createRequisition(String institutionId) throws IOException, InterruptedException {
+    @NonNull
+    public Requisition createRequisition(@NonNull final String institutionId) throws IOException, InterruptedException {
         final JsonObject body = JsonBasedFactory.createRequisitionRequestBody(institutionId);
         final JsonElement jsonElement = handlePostRequest("https://bankaccountdata.gocardless.com/api/v2/requisitions/",
                 body);
         return JsonBasedFactory.createRequisition(jsonElement);
     }
 
-    public Transactions getTransactions(String account) throws IOException, InterruptedException {
+    @NonNull
+    public Transactions getTransactions(@NonNull final String account) throws IOException, InterruptedException {
+        Objects.requireNonNull(account, "account must not be null");
         final JsonElement jsonElement = handleGetRequest(
                 "https://bankaccountdata.gocardless.com/api/v2/accounts/" + account + "/transactions/");
         return JsonBasedFactory.createTransactions(jsonElement);
     }
 
-    public Account getAccount(String id) throws IOException, InterruptedException {
+    @NonNull
+    public Account getAccount(@NonNull final String id) throws IOException, InterruptedException {
+        Objects.requireNonNull(id, "id must not be null");
         final JsonElement jsonElement = handleGetRequest(
                 "https://bankaccountdata.gocardless.com/api/v2/accounts/" + id + "/");
         return JsonBasedFactory.createAccount(jsonElement);
     }
 
-    public List<Balance> getBalances(String accountId) throws IOException, InterruptedException {
+    @NonNull
+    public List<Balance> getBalances(@NonNull final String accountId) throws IOException, InterruptedException {
+        Objects.requireNonNull(accountId, "accountId must not be null");
         final JsonElement jsonElement = handleGetRequest(
                 "https://bankaccountdata.gocardless.com/api/v2/accounts/" + accountId + "/balances/");
         return JsonBasedFactory.createBalances(jsonElement);
