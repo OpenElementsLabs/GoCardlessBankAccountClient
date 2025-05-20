@@ -9,3 +9,5 @@ is available at https://developer.gocardless.com/bank-account-data/quick-start-g
 > This project is in the early stages of development.
 > The API is not stable and may change in the future.
 > Please use at your own risk.
+
+You can use the sandbox institution provided by GoCardless to test the API: https://developer.gocardless.com/bank-account-data/sandbox
