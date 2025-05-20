@@ -3,6 +3,14 @@ package com.openelements.cardless;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.openelements.cardless.data.AccessAndRefreshToken;
+import com.openelements.cardless.data.AccessToken;
+import com.openelements.cardless.data.ErrorMessage;
+import com.openelements.cardless.data.Institution;
+import com.openelements.cardless.data.JsonBasedFactory;
+import com.openelements.cardless.data.Requisition;
+import com.openelements.cardless.data.RequisitionsPage;
+import com.openelements.cardless.data.Transactions;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -16,20 +24,24 @@ import org.jspecify.annotations.NonNull;
 
 public class CardlessClient {
 
-    private final String secretId;
-
-    private final String secretKey;
-
     private final HttpClient httpClient;
 
     private AtomicReference<AccessAndRefreshToken> accessAndRefreshTokenRef = new AtomicReference<>();
 
     public CardlessClient(@NonNull final String secretId, @NonNull final String secretKey)
             throws IOException, InterruptedException {
-        this.secretId = Objects.requireNonNull(secretId, "secretId must not be null");
-        this.secretKey = Objects.requireNonNull(secretKey, "secretKey must not be null");
         httpClient = HttpClient.newBuilder().build();
-        receiveAccessToken();
+        final JsonObject body = JsonBasedFactory.createReceiveAccessToken(secretId, secretKey);
+        final JsonElement response = handlePostRequest("https://bankaccountdata.gocardless.com/api/v2/token/new/",
+                body);
+        AccessAndRefreshToken token = JsonBasedFactory.createAccessAndRefreshToken(response);
+        accessAndRefreshTokenRef.set(token);
+    }
+
+    public CardlessClient(@NonNull final String sandboxToken) {
+        httpClient = HttpClient.newBuilder().build();
+        AccessAndRefreshToken token = new AccessAndRefreshToken(sandboxToken, Integer.MAX_VALUE, "", 0);
+        accessAndRefreshTokenRef.set(token);
     }
 
     private static ErrorMessage createFromJson(@NonNull String json) {
@@ -124,19 +136,8 @@ public class CardlessClient {
         }
     }
 
-    private void receiveAccessToken() throws IOException, InterruptedException {
-        final JsonObject body = new JsonObject();
-        body.addProperty("secret_id", secretId);
-        body.addProperty("secret_key", secretKey);
-        final JsonElement response = handlePostRequest("https://bankaccountdata.gocardless.com/api/v2/token/new/",
-                body);
-        AccessAndRefreshToken token = JsonBasedFactory.createAccessAndRefreshToken(response);
-        accessAndRefreshTokenRef.set(token);
-    }
-
     private AccessToken updateAccessToken() throws IOException, InterruptedException {
-        final JsonObject body = new JsonObject();
-        body.addProperty("refresh", accessAndRefreshTokenRef.get().refresh());
+        final JsonObject body = JsonBasedFactory.createUpdateAccessTokenBody(accessAndRefreshTokenRef.get().refresh());
         final JsonElement jsonElement = handlePostRequest(
                 "https://bankaccountdata.gocardless.com/api/v2/token/refresh/",
                 body);
@@ -144,11 +145,7 @@ public class CardlessClient {
     }
 
     private synchronized void checkAccessToken() throws IOException, InterruptedException {
-        if (accessAndRefreshTokenRef.get() == null) {
-            receiveAccessToken();
-        }
         final AccessAndRefreshToken currentAccessToken = accessAndRefreshTokenRef.get();
-
         if (currentAccessToken.willExpireShortly()) {
             AccessToken newAccessToken = updateAccessToken();
             accessAndRefreshTokenRef.set(
@@ -157,10 +154,11 @@ public class CardlessClient {
         }
     }
 
-    public void getRequisitions(int limit, int offset) throws IOException, InterruptedException {
+    public RequisitionsPage getRequisitions(int limit, int offset) throws IOException, InterruptedException {
         checkAccessToken();
         final JsonElement jsonElement = handleGetRequest(
                 "https://bankaccountdata.gocardless.com/api/v2/requisitions/?limit=" + limit + "&offset=" + offset);
+        return JsonBasedFactory.createRequisitionsPage(jsonElement);
     }
 
     public List<Institution> getInstitutions(String country) throws IOException, InterruptedException {
@@ -177,11 +175,15 @@ public class CardlessClient {
     }
 
     public Requisition createRequisition(String institutionId) throws IOException, InterruptedException {
-        final JsonObject body = new JsonObject();
-        body.addProperty("redirect", "http://www.yourwebpage.com");
-        body.addProperty("institution_id", institutionId);
+        final JsonObject body = JsonBasedFactory.createRequisitionRequestBody(institutionId);
         final JsonElement jsonElement = handlePostRequest("https://bankaccountdata.gocardless.com/api/v2/requisitions/",
                 body);
         return JsonBasedFactory.createRequisition(jsonElement);
+    }
+
+    public Transactions getTransactions(String account) throws IOException, InterruptedException {
+        final JsonElement jsonElement = handleGetRequest(
+                "https://bankaccountdata.gocardless.com/api/v2/accounts/" + account + "/transactions/");
+        return JsonBasedFactory.createTransactions(jsonElement);
     }
 }

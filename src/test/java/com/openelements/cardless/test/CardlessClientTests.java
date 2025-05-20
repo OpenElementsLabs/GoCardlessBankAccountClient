@@ -1,8 +1,9 @@
 package com.openelements.cardless.test;
 
 import com.openelements.cardless.CardlessClient;
-import com.openelements.cardless.Institution;
-import com.openelements.cardless.Requisition;
+import com.openelements.cardless.data.Institution;
+import com.openelements.cardless.data.Requisition;
+import com.openelements.cardless.data.RequisitionsPage;
 import io.github.cdimascio.dotenv.Dotenv;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -10,7 +11,7 @@ import org.junit.jupiter.api.Test;
 public class CardlessClientTests {
 
     @Test
-    void test() throws Exception {
+    void test1() throws Exception {
         //given
         Dotenv dotenv = Dotenv.load();
         String secretId = dotenv.get("CARDLESS_SECRET_ID");
@@ -29,5 +30,42 @@ public class CardlessClientTests {
         final Requisition requisition = client.createRequisition(bank);
 
         System.out.println("Please open: " + requisition.link());
+    }
+
+    @Test
+    void test1_5() throws Exception {
+        //given
+        Dotenv dotenv = Dotenv.load();
+        String secretId = dotenv.get("CARDLESS_SECRET_ID");
+        String secretKey = dotenv.get("CARDLESS_SECRET_KEY");
+        CardlessClient client = new CardlessClient(secretId, secretKey);
+
+        final Requisition requisition = client.createRequisition("SANDBOXFINANCE_SFIN0000");
+
+        System.out.println("Please open: " + requisition.link());
+    }
+
+    @Test
+    void test2() throws Exception {
+        //given
+        Dotenv dotenv = Dotenv.load();
+        String secretId = dotenv.get("CARDLESS_SECRET_ID");
+        String secretKey = dotenv.get("CARDLESS_SECRET_KEY");
+        CardlessClient client = new CardlessClient(secretId, secretKey);
+
+        //when
+        RequisitionsPage page = client.getRequisitions(10, 0);
+        page.requisitions().stream()
+                .flatMap(r -> r.accounts().stream())
+                .map(a -> {
+                    try {
+                        return client.getTransactions(a);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }).flatMap(t -> t.bookedTransactions().stream())
+                .forEach(t -> System.out.println(
+                        t.bookingDate() + ": " + t.remittanceInformationUnstructured() + " -> " + t.transactionAmount()
+                                .amount() + " " + t.transactionAmount().currency()));
     }
 }

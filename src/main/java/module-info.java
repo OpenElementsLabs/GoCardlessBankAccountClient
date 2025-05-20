@@ -4,4 +4,5 @@ module com.openelements.cardless {
     requires static org.jspecify;
 
     exports com.openelements.cardless;
+    exports com.openelements.cardless.data;
 }

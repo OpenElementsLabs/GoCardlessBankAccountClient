@@ -1,4 +1,4 @@
-package com.openelements.cardless;
+package com.openelements.cardless.data;
 
 import java.time.LocalDateTime;
 
