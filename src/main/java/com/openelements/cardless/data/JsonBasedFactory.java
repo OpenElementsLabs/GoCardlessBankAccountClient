@@ -8,6 +8,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -126,9 +127,10 @@ public class JsonBasedFactory {
         }
         final Amount transactionAmount = createAmount(jsonObject.get("transactionAmount"));
         final LocalDate bookingDate = LocalDate.parse(jsonObject.get("bookingDate").getAsString());
-        final LocalDate valueDate = LocalDate.parse(jsonObject.get("valueDate").getAsString());
-        final String remittanceInformationUnstructured = jsonObject.get("remittanceInformationUnstructured")
-                .getAsString();
+        final LocalDate valueDate = Optional.ofNullable(getAsStringOrNull(jsonObject.get("valueDate")))
+                .map(v -> LocalDate.parse(v)).orElse(null);
+        final String remittanceInformationUnstructured = getAsStringOrNull(
+                jsonObject.get("remittanceInformationUnstructured"));
         return new BookedTransaction(transactionId, debtorName, debtorAccount, transactionAmount, bookingDate,
                 valueDate, remittanceInformationUnstructured);
     }
@@ -181,12 +183,13 @@ public class JsonBasedFactory {
         final JsonObject jsonObject = jsonElement.getAsJsonObject();
         final String id = jsonObject.get("id").getAsString();
         final ZonedDateTime created = ZonedDateTime.parse(jsonObject.get("created").getAsString());
-        final ZonedDateTime lastAccessed = ZonedDateTime.parse(jsonObject.get("last_accessed").getAsString());
-        final String iban = jsonObject.get("iban").getAsString();
-        final String bban = jsonObject.get("bban").getAsString();
+        final ZonedDateTime lastAccessed = Optional.ofNullable(getAsStringOrNull(jsonObject.get("last_accessed")))
+                .map(v -> ZonedDateTime.parse(v)).orElse(null);
+        final String iban = getAsStringOrNull(jsonObject.get("iban"));
+        final String bban = getAsStringOrNull(jsonObject.get("bban"));
         final String status = jsonObject.get("status").getAsString();
         final String institutionId = jsonObject.get("institution_id").getAsString();
-        final String ownerName = jsonObject.get("owner_name").getAsString();
+        final String ownerName = getAsStringOrNull(jsonObject.get("owner_name"));
         final String name = jsonObject.get("name").getAsString();
         return new Account(id, created, lastAccessed, iban, bban, status, institutionId, ownerName, name);
     }
