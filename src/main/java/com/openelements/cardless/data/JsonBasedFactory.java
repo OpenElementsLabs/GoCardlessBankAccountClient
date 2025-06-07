@@ -114,25 +114,59 @@ public class JsonBasedFactory {
     }
 
     @NonNull
+    private static Optional<String> getAsString(@NonNull final JsonElement element) {
+        if (element == null || element.isJsonNull()) {
+            return Optional.empty();
+        } else {
+            return Optional.ofNullable(element.getAsString());
+        }
+    }
+
+    @NonNull
     private static BookedTransaction createBookedTransaction(@NonNull final JsonElement json) {
         Objects.requireNonNull(json, "json must not be null");
         final JsonObject jsonObject = json.getAsJsonObject();
         final String transactionId = jsonObject.get("transactionId").getAsString();
-        final String debtorName = getAsStringOrNull(jsonObject.get("debtorName"));
-        final DebtorAccount debtorAccount;
-        if (jsonObject.has("debtorAccount")) {
-            debtorAccount = createDebtorAccount(jsonObject.get("debtorAccount"));
-        } else {
-            debtorAccount = null;
-        }
         final Amount transactionAmount = createAmount(jsonObject.get("transactionAmount"));
-        final LocalDate bookingDate = LocalDate.parse(jsonObject.get("bookingDate").getAsString());
-        final LocalDate valueDate = Optional.ofNullable(getAsStringOrNull(jsonObject.get("valueDate")))
+        final LocalDate bookingDate = getAsString(jsonObject.get("bookingDate"))
                 .map(v -> LocalDate.parse(v)).orElse(null);
-        final String remittanceInformationUnstructured = getAsStringOrNull(
-                jsonObject.get("remittanceInformationUnstructured"));
-        return new BookedTransaction(transactionId, debtorName, debtorAccount, transactionAmount, bookingDate,
-                valueDate, remittanceInformationUnstructured);
+        final LocalDate valueDate = getAsString(jsonObject.get("valueDate"))
+                .map(v -> LocalDate.parse(v)).orElse(null);
+        final String message = getAsString(jsonObject.get("remittanceInformationUnstructured"))
+                .or(() -> getAsString(jsonObject.get("remittanceInformationStructured")))
+                .or(() -> {
+                    if (jsonObject.has("remittanceInformationUnstructuredArray")) {
+                        return Optional.of(jsonObject.get("remittanceInformationUnstructuredArray").toString());
+                    }
+                    if (jsonObject.has("remittanceInformationStructuredArray")) {
+                        return Optional.of(jsonObject.get("remittanceInformationStructuredArray").toString());
+                    }
+                    return Optional.empty();
+                })
+                .orElse(null);
+
+        final String counterpartyName;
+        final CounterpartyAccount counterpartyAccount;
+
+        if (transactionAmount.amount().signum() > 0) {
+            counterpartyName = getAsStringOrNull(jsonObject.get("debtorName"));
+            if (jsonObject.has("debtorAccount")) {
+                counterpartyAccount = createDebtorAccount(jsonObject.get("debtorAccount"));
+            } else {
+                counterpartyAccount = null;
+            }
+        } else {
+            counterpartyName = getAsStringOrNull(jsonObject.get("creditorName"));
+            if (jsonObject.has("creditorAccount")) {
+                counterpartyAccount = createDebtorAccount(jsonObject.get("creditorAccount"));
+            } else {
+                counterpartyAccount = null;
+            }
+        }
+
+        return new BookedTransaction(transactionId, counterpartyName, counterpartyAccount, transactionAmount,
+                bookingDate,
+                valueDate, message);
     }
 
     @NonNull
@@ -140,16 +174,24 @@ public class JsonBasedFactory {
         Objects.requireNonNull(json, "json must not be null");
         final JsonObject jsonObject = json.getAsJsonObject();
         final Amount transactionAmount = createAmount(jsonObject.get("transactionAmount"));
-        final LocalDate valueDate = LocalDate.parse(jsonObject.get("valueDate").getAsString());
-        final String remittanceInformationUnstructured = jsonObject.get("remittanceInformationUnstructured")
-                .getAsString();
+        final LocalDate valueDate = getAsString(jsonObject.get("valueDate"))
+                .map(v -> LocalDate.parse(v)).orElse(null);
+        final String remittanceInformationUnstructured = getAsStringOrNull(
+                jsonObject.get("remittanceInformationUnstructured"));
         return new PendingTransaction(transactionAmount, valueDate, remittanceInformationUnstructured);
     }
 
     @NonNull
-    private static DebtorAccount createDebtorAccount(@NonNull final JsonElement json) {
+    private static CounterpartyAccount createDebtorAccount(@NonNull final JsonElement json) {
         Objects.requireNonNull(json, "json must not be null");
-        return new DebtorAccount();
+        final String iban;
+        if (json.isJsonObject()) {
+            final JsonObject jsonObject = json.getAsJsonObject();
+            iban = getAsStringOrNull(jsonObject.get("iban"));
+        } else {
+            iban = null;
+        }
+        return new CounterpartyAccount(iban);
     }
 
     @NonNull
@@ -182,15 +224,17 @@ public class JsonBasedFactory {
         Objects.requireNonNull(jsonElement, "jsonElement must not be null");
         final JsonObject jsonObject = jsonElement.getAsJsonObject();
         final String id = jsonObject.get("id").getAsString();
-        final ZonedDateTime created = ZonedDateTime.parse(jsonObject.get("created").getAsString());
-        final ZonedDateTime lastAccessed = Optional.ofNullable(getAsStringOrNull(jsonObject.get("last_accessed")))
+        final ZonedDateTime created = getAsString(jsonObject.get("created"))
+                .map(v -> ZonedDateTime.parse(v))
+                .orElse(null);
+        final ZonedDateTime lastAccessed = getAsString(jsonObject.get("last_accessed"))
                 .map(v -> ZonedDateTime.parse(v)).orElse(null);
         final String iban = getAsStringOrNull(jsonObject.get("iban"));
         final String bban = getAsStringOrNull(jsonObject.get("bban"));
-        final String status = jsonObject.get("status").getAsString();
+        final String status = getAsStringOrNull(jsonObject.get("status"));
         final String institutionId = jsonObject.get("institution_id").getAsString();
         final String ownerName = getAsStringOrNull(jsonObject.get("owner_name"));
-        final String name = jsonObject.get("name").getAsString();
+        final String name = getAsStringOrNull(jsonObject.get("name"));
         return new Account(id, created, lastAccessed, iban, bban, status, institutionId, ownerName, name);
     }
 
@@ -208,8 +252,9 @@ public class JsonBasedFactory {
         Objects.requireNonNull(jsonElement, "jsonElement must not be null");
         final JsonObject jsonObject = jsonElement.getAsJsonObject();
         final Amount balanceAmount = createAmount(jsonObject.getAsJsonObject("balanceAmount"));
-        final String balanceType = jsonObject.get("balanceType").getAsString();
-        final LocalDate referenceDate = LocalDate.parse(jsonObject.get("referenceDate").getAsString());
+        final String balanceType = getAsStringOrNull(jsonObject.get("balanceType"));
+        final LocalDate referenceDate = getAsString(jsonObject.get("referenceDate"))
+                .map(v -> LocalDate.parse(v)).orElse(null);
         return new Balance(balanceAmount, balanceType, referenceDate);
     }
 }

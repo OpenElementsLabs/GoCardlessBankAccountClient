@@ -23,8 +23,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CardlessClient {
+
+    private final static Logger log = LoggerFactory.getLogger(CardlessClient.class);
 
     private final HttpClient httpClient;
 
@@ -163,16 +167,20 @@ public class CardlessClient {
     @NonNull
     public RequisitionsPage getRequisitions(final int limit, final int offset)
             throws IOException, InterruptedException {
+        log.debug("Fetching requisitions with limit: {}, offset: {}", limit, offset);
         final JsonElement jsonElement = handleGetRequest(
                 "https://bankaccountdata.gocardless.com/api/v2/requisitions/?limit=" + limit + "&offset=" + offset);
+        log.debug("Received JSON: {}", jsonElement);
         return JsonBasedFactory.createRequisitionsPage(jsonElement);
     }
 
     @NonNull
     public List<Institution> getInstitutions(@NonNull final String country) throws IOException, InterruptedException {
         Objects.requireNonNull(country, "country must not be null");
+        log.debug("Fetching institutions for country: {}", country);
         final JsonElement jsonElement = handleGetRequest(
                 "https://bankaccountdata.gocardless.com/api/v2/institutions/?country=" + country);
+        log.debug("Received JSON: {}", jsonElement);
         return jsonElement.getAsJsonArray().asList().stream()
                 .map(JsonBasedFactory::createInstitution)
                 .toList();
@@ -186,33 +194,42 @@ public class CardlessClient {
 
     @NonNull
     public Requisition createRequisition(@NonNull final String institutionId) throws IOException, InterruptedException {
+        Objects.requireNonNull(institutionId, "institutionId must not be null");
+        log.debug("Creating requisition for institutionId: {}", institutionId);
         final JsonObject body = JsonBasedFactory.createRequisitionRequestBody(institutionId);
         final JsonElement jsonElement = handlePostRequest("https://bankaccountdata.gocardless.com/api/v2/requisitions/",
                 body);
+        log.debug("Received JSON: {}", jsonElement);
         return JsonBasedFactory.createRequisition(jsonElement);
     }
 
     @NonNull
     public Transactions getTransactions(@NonNull final String account) throws IOException, InterruptedException {
         Objects.requireNonNull(account, "account must not be null");
+        log.debug("Fetching transactions for account: {}", account);
         final JsonElement jsonElement = handleGetRequest(
                 "https://bankaccountdata.gocardless.com/api/v2/accounts/" + account + "/transactions/");
+        log.debug("Received JSON: {}", jsonElement);
         return JsonBasedFactory.createTransactions(jsonElement);
     }
 
     @NonNull
     public Account getAccount(@NonNull final String id) throws IOException, InterruptedException {
         Objects.requireNonNull(id, "id must not be null");
+        log.debug("Fetching account with id: {}", id);
         final JsonElement jsonElement = handleGetRequest(
                 "https://bankaccountdata.gocardless.com/api/v2/accounts/" + id + "/");
+        log.debug("Received JSON: {}", jsonElement);
         return JsonBasedFactory.createAccount(jsonElement);
     }
 
     @NonNull
     public List<Balance> getBalances(@NonNull final String accountId) throws IOException, InterruptedException {
         Objects.requireNonNull(accountId, "accountId must not be null");
+        log.debug("Fetching balances for accountId: {}", accountId);
         final JsonElement jsonElement = handleGetRequest(
                 "https://bankaccountdata.gocardless.com/api/v2/accounts/" + accountId + "/balances/");
+        log.debug("Received JSON: {}", jsonElement);
         return JsonBasedFactory.createBalances(jsonElement);
     }
 }
