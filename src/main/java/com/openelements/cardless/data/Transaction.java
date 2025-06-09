@@ -9,4 +9,6 @@ public interface Transaction {
     LocalDate valueDate();
 
     String remittanceInformationUnstructured();
+
+    String additionalInformation();
 }

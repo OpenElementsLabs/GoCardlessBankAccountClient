@@ -4,5 +4,6 @@ import java.time.LocalDate;
 
 public record BookedTransaction(String transactionId, String counterpartyName, CounterpartyAccount counterpartyAccount,
                                 Amount transactionAmount, LocalDate bookingDate, LocalDate valueDate,
-                                String remittanceInformationUnstructured) implements Transaction {
+                                String remittanceInformationUnstructured, String additionalInformation) implements
+        Transaction {
 }

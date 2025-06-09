@@ -163,10 +163,11 @@ public class JsonBasedFactory {
                 counterpartyAccount = null;
             }
         }
+        final String additionalInformation = getAsStringOrNull(jsonObject.get("additionalInformation"));
 
         return new BookedTransaction(transactionId, counterpartyName, counterpartyAccount, transactionAmount,
                 bookingDate,
-                valueDate, message);
+                valueDate, message, additionalInformation);
     }
 
     @NonNull
@@ -178,7 +179,10 @@ public class JsonBasedFactory {
                 .map(v -> LocalDate.parse(v)).orElse(null);
         final String remittanceInformationUnstructured = getAsStringOrNull(
                 jsonObject.get("remittanceInformationUnstructured"));
-        return new PendingTransaction(transactionAmount, valueDate, remittanceInformationUnstructured);
+        final String additionalInformation = getAsStringOrNull(jsonObject.get("additionalInformation"));
+
+        return new PendingTransaction(transactionAmount, valueDate, remittanceInformationUnstructured,
+                additionalInformation);
     }
 
     @NonNull
