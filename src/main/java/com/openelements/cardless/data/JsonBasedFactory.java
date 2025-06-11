@@ -151,16 +151,16 @@ public class JsonBasedFactory {
         if (transactionAmount.amount().signum() > 0) {
             counterpartyName = getAsStringOrNull(jsonObject.get("debtorName"));
             if (jsonObject.has("debtorAccount")) {
-                counterpartyAccount = createDebtorAccount(jsonObject.get("debtorAccount"));
+                counterpartyAccount = createCounterpartyAccount(jsonObject.get("debtorAccount"));
             } else {
-                counterpartyAccount = null;
+                counterpartyAccount = new CounterpartyAccount(null);
             }
         } else {
             counterpartyName = getAsStringOrNull(jsonObject.get("creditorName"));
             if (jsonObject.has("creditorAccount")) {
-                counterpartyAccount = createDebtorAccount(jsonObject.get("creditorAccount"));
+                counterpartyAccount = createCounterpartyAccount(jsonObject.get("creditorAccount"));
             } else {
-                counterpartyAccount = null;
+                counterpartyAccount = new CounterpartyAccount(null);
             }
         }
         final String additionalInformation = getAsStringOrNull(jsonObject.get("additionalInformation"));
@@ -186,7 +186,7 @@ public class JsonBasedFactory {
     }
 
     @NonNull
-    private static CounterpartyAccount createDebtorAccount(@NonNull final JsonElement json) {
+    private static CounterpartyAccount createCounterpartyAccount(@NonNull final JsonElement json) {
         Objects.requireNonNull(json, "json must not be null");
         final String iban;
         if (json.isJsonObject()) {
