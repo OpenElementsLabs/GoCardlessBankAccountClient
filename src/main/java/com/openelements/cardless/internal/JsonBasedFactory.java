@@ -1,7 +1,19 @@
-package com.openelements.cardless.data;
+package com.openelements.cardless.internal;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.openelements.cardless.data.AccessAndRefreshToken;
+import com.openelements.cardless.data.AccessToken;
+import com.openelements.cardless.data.Account;
+import com.openelements.cardless.data.Amount;
+import com.openelements.cardless.data.Balance;
+import com.openelements.cardless.data.BookedTransaction;
+import com.openelements.cardless.data.CounterpartyAccount;
+import com.openelements.cardless.data.Institution;
+import com.openelements.cardless.data.PendingTransaction;
+import com.openelements.cardless.data.Requisition;
+import com.openelements.cardless.data.RequisitionsPage;
+import com.openelements.cardless.data.Transactions;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
