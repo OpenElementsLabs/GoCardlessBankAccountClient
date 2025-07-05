@@ -16,7 +16,7 @@ public class CardlessClientTests {
         Dotenv dotenv = Dotenv.load();
         String secretId = dotenv.get("CARDLESS_SECRET_ID");
         String secretKey = dotenv.get("CARDLESS_SECRET_KEY");
-        CardlessClient client = new CardlessClient(secretId, secretKey);
+        CardlessClient client = CardlessClient.create(secretId, secretKey);
 
         //when
         List<Institution> institutions = client.getInstitutions("de");
@@ -38,7 +38,7 @@ public class CardlessClientTests {
         Dotenv dotenv = Dotenv.load();
         String secretId = dotenv.get("CARDLESS_SECRET_ID");
         String secretKey = dotenv.get("CARDLESS_SECRET_KEY");
-        CardlessClient client = new CardlessClient(secretId, secretKey);
+        CardlessClient client = CardlessClient.create(secretId, secretKey);
 
         final Requisition requisition = client.createRequisition("SANDBOXFINANCE_SFIN0000");
 
@@ -51,7 +51,7 @@ public class CardlessClientTests {
         Dotenv dotenv = Dotenv.load();
         String secretId = dotenv.get("CARDLESS_SECRET_ID");
         String secretKey = dotenv.get("CARDLESS_SECRET_KEY");
-        CardlessClient client = new CardlessClient(secretId, secretKey);
+        CardlessClient client = CardlessClient.create(secretId, secretKey);
 
         //when
         RequisitionsPage page = client.getRequisitions(10, 0);
@@ -75,7 +75,7 @@ public class CardlessClientTests {
         Dotenv dotenv = Dotenv.load();
         String secretId = dotenv.get("CARDLESS_SECRET_ID");
         String secretKey = dotenv.get("CARDLESS_SECRET_KEY");
-        CardlessClient client = new CardlessClient(secretId, secretKey);
+        CardlessClient client = CardlessClient.create(secretId, secretKey);
 
         //when
         RequisitionsPage page = client.getRequisitions(10, 0);

@@ -7,13 +7,12 @@ import com.openelements.cardless.data.Requisition;
 import com.openelements.cardless.data.RequisitionsPage;
 import com.openelements.cardless.data.Transactions;
 import com.openelements.cardless.internal.CardlessClientImpl;
-import java.io.IOException;
 import java.util.List;
 import org.jspecify.annotations.NonNull;
 
 public interface CardlessClient {
 
-    static CardlessClient of(@NonNull final String secretId, @NonNull final String secretKey)
+    static CardlessClient create(@NonNull final String secretId, @NonNull final String secretKey)
             throws CardlessException {
         return new CardlessClientImpl(secretId, secretKey);
     }
