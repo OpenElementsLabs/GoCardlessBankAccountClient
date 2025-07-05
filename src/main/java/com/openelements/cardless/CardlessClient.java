@@ -25,6 +25,9 @@ public interface CardlessClient {
     List<Institution> getInstitutions(@NonNull final String country) throws CardlessException;
 
     @NonNull
+    Institution getInstitution(@NonNull final String institutionId) throws CardlessException;
+
+    @NonNull
     Requisition createRequisition(@NonNull final Institution institution)
             throws CardlessException;
 

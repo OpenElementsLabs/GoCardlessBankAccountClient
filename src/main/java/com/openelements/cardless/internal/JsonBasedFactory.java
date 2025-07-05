@@ -53,7 +53,10 @@ public class JsonBasedFactory {
         final String id = jsonObject.get("id").getAsString();
         final String name = jsonObject.get("name").getAsString();
         final String bic = jsonObject.get("bic").getAsString();
-        return new Institution(id, name, bic);
+        final String transactionTotalDays = getAsStringOrNull(jsonObject.get("transaction_total_days"));
+        final String maxAccessValidForDays = getAsStringOrNull(jsonObject.get("max_access_valid_for_days"));
+        final String logo = getAsStringOrNull(jsonObject.get("logo"));
+        return new Institution(id, name, bic, transactionTotalDays, maxAccessValidForDays, logo);
     }
 
     @NonNull

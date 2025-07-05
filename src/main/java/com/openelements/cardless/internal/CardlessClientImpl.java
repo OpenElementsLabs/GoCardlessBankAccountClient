@@ -264,4 +264,18 @@ public class CardlessClientImpl implements CardlessClient {
             throw new CardlessException("Error in fetching balances for accountId '" + accountId + "'", e);
         }
     }
+
+    @Override
+    public @NonNull Institution getInstitution(@NonNull String institutionId) throws CardlessException {
+        Objects.requireNonNull(institutionId, "institutionId must not be null");
+        log.debug("Fetching institution for institutionId: {}", institutionId);
+        try {
+            final JsonElement jsonElement = handleGetRequest(
+                    "https://bankaccountdata.gocardless.com/api/v2/institutions/" + institutionId + "/");
+            log.debug("Received JSON: {}", jsonElement);
+            return JsonBasedFactory.createInstitution(jsonElement);
+        } catch (Exception e) {
+            throw new CardlessException("Error fetching institution for institutionId '" + institutionId + "'", e);
+        }
+    }
 }
