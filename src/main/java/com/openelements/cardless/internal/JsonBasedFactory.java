@@ -15,6 +15,7 @@ import com.openelements.cardless.data.Requisition;
 import com.openelements.cardless.data.RequisitionsPage;
 import com.openelements.cardless.data.Transactions;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -96,7 +97,18 @@ public class JsonBasedFactory {
     public static JsonObject createRequisitionRequestBody(@NonNull final String institutionId) {
         Objects.requireNonNull(institutionId, "institutionId must not be null");
         final JsonObject body = new JsonObject();
-        body.addProperty("redirect", "http://www.yourwebpage.com");
+        body.addProperty("redirect", "http://www.example.com");
+        body.addProperty("institution_id", institutionId);
+        return body;
+    }
+
+    @NonNull
+    public static JsonObject createRequisitionRequestBody(@NonNull final String institutionId,
+            @NonNull final URI redirectUri) {
+        Objects.requireNonNull(institutionId, "institutionId must not be null");
+        Objects.requireNonNull(redirectUri, "redirectUri must not be null");
+        final JsonObject body = new JsonObject();
+        body.addProperty("redirect", redirectUri.toString());
         body.addProperty("institution_id", institutionId);
         return body;
     }

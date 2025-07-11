@@ -225,18 +225,14 @@ public class CardlessClientImpl implements CardlessClient {
     }
 
     @NonNull
-    public Requisition createRequisition(@NonNull final Institution institution)
+    @Override
+    public Requisition createRequisition(@NonNull final String institutionId, @NonNull URI redirect)
             throws CardlessException {
-        Objects.requireNonNull(institution, "institution must not be null");
-        return createRequisition(institution.id());
-    }
-
-    @NonNull
-    public Requisition createRequisition(@NonNull final String institutionId) throws CardlessException {
         Objects.requireNonNull(institutionId, "institutionId must not be null");
-        log.debug("Creating requisition for institutionId: {}", institutionId);
+        Objects.requireNonNull(redirect, "redirect URI must not be null");
+        log.debug("Creating requisition for institutionId: '{}' and redirect: '{}'", institutionId, redirect);
         try {
-            final JsonObject body = JsonBasedFactory.createRequisitionRequestBody(institutionId);
+            final JsonObject body = JsonBasedFactory.createRequisitionRequestBody(institutionId, redirect);
             final JsonElement jsonElement = handlePostRequest(
                     "https://bankaccountdata.gocardless.com/api/v2/requisitions/",
                     body);

@@ -7,6 +7,7 @@ import com.openelements.cardless.data.Requisition;
 import com.openelements.cardless.data.RequisitionsPage;
 import com.openelements.cardless.data.Transactions;
 import com.openelements.cardless.internal.CardlessClientImpl;
+import java.net.URI;
 import java.util.List;
 import org.jspecify.annotations.NonNull;
 
@@ -28,11 +29,7 @@ public interface CardlessClient {
     Institution getInstitution(@NonNull final String institutionId) throws CardlessException;
 
     @NonNull
-    Requisition createRequisition(@NonNull final Institution institution)
-            throws CardlessException;
-
-    @NonNull
-    Requisition createRequisition(@NonNull final String institutionId) throws CardlessException;
+    Requisition createRequisition(@NonNull final String institutionId, @NonNull URI redirect) throws CardlessException;
 
     void deleteRequisition(@NonNull final String requisitionId) throws CardlessException;
 

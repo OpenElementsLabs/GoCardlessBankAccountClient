@@ -5,6 +5,7 @@ import com.openelements.cardless.data.Institution;
 import com.openelements.cardless.data.Requisition;
 import com.openelements.cardless.data.RequisitionsPage;
 import io.github.cdimascio.dotenv.Dotenv;
+import java.net.URI;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +28,7 @@ public class CardlessClientTests {
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("Institution not found"));
 
-        final Requisition requisition = client.createRequisition(bank);
+        final Requisition requisition = client.createRequisition(bank.id(), URI.create("https://example.com/"));
 
         System.out.println("Please open: " + requisition.link());
     }
@@ -40,7 +41,8 @@ public class CardlessClientTests {
         String secretKey = dotenv.get("CARDLESS_SECRET_KEY");
         CardlessClient client = CardlessClient.create(secretId, secretKey);
 
-        final Requisition requisition = client.createRequisition("SANDBOXFINANCE_SFIN0000");
+        final Requisition requisition = client.createRequisition("SANDBOXFINANCE_SFIN0000",
+                URI.create("https://example.com/"));
 
         System.out.println("Please open: " + requisition.link());
     }
