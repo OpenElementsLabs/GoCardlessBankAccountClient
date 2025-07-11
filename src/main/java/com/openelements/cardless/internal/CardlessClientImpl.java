@@ -91,6 +91,30 @@ public class CardlessClientImpl implements CardlessClient {
     }
 
     @NonNull
+    private HttpRequest createDeleteRequest(@NonNull final String url) throws IOException, InterruptedException {
+        return createDeleteRequest(url, true);
+    }
+
+    @NonNull
+    private HttpRequest createDeleteRequest(@NonNull final String url, final boolean checkAccessToken)
+            throws IOException, InterruptedException {
+        Objects.requireNonNull(url, "url must not be null");
+        if (checkAccessToken) {
+            checkAccessToken();
+        }
+        final AccessAndRefreshToken accessAndRefreshToken = accessAndRefreshTokenRef.get();
+        final HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Content-Type", "application/json")
+                .header("accept", "application/json");
+        if (accessAndRefreshToken != null) {
+            builder.header("Authorization", "Bearer " + accessAndRefreshTokenRef.get().access());
+        }
+        return builder.DELETE()
+                .build();
+    }
+
+    @NonNull
     private HttpRequest createPostRequest(@NonNull final String url, @NonNull JsonElement body,
             boolean checkAccessToken) throws IOException, InterruptedException {
         Objects.requireNonNull(url, "url must not be null");
@@ -220,6 +244,23 @@ public class CardlessClientImpl implements CardlessClient {
             return JsonBasedFactory.createRequisition(jsonElement);
         } catch (Exception e) {
             throw new CardlessException("Error creating requisition for institutionId '" + institutionId + "'", e);
+        }
+    }
+
+    @Override
+    public void deleteRequisition(@NonNull String requisitionId) throws CardlessException {
+        Objects.requireNonNull(requisitionId, "requisitionId must not be null");
+        log.debug("Deleting requisition with id: {}", requisitionId);
+        try {
+            final HttpRequest request = createDeleteRequest(
+                    "https://bankaccountdata.gocardless.com/api/v2/requisitions/" + requisitionId + "/");
+            final HttpResponse<Void> response = httpClient.send(request, BodyHandlers.discarding());
+            if (response.statusCode() != 200) {
+                throw new CardlessException("Error deleting requisition with id '" + requisitionId + "'");
+            }
+            log.debug("Requisition with id {} deleted successfully", requisitionId);
+        } catch (Exception e) {
+            throw new CardlessException("Error deleting requisition with id '" + requisitionId + "'", e);
         }
     }
 

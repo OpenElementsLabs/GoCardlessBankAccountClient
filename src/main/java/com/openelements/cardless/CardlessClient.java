@@ -34,6 +34,8 @@ public interface CardlessClient {
     @NonNull
     Requisition createRequisition(@NonNull final String institutionId) throws CardlessException;
 
+    void deleteRequisition(@NonNull final String requisitionId) throws CardlessException;
+
     @NonNull
     Transactions getTransactions(@NonNull final String account) throws CardlessException;
 
